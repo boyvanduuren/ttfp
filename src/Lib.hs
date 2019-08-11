@@ -1,16 +1,17 @@
 module Lib
-  ( subterms
+  ( LambdaTerm(..)
+  , subterms
   , properSubterm
   ) where
 
-import qualified Data.MultiSet as MultiSet
+import qualified Data.MultiSet as MS
 
 -- | Constructions for Lambda terms, as per TTAFP 1.3.2
 data LambdaTerm
   = Var Char
   | Ap LambdaTerm LambdaTerm
   | Ab Char LambdaTerm
-  deriving (Eq)
+  deriving (Eq, Ord)
 
 instance Show LambdaTerm where
   show t =
@@ -21,14 +22,15 @@ instance Show LambdaTerm where
       Ab v t1 -> "λ" ++ [v] ++ "." ++ show t1
 
 -- | Get the subterms of a LambdaTerm, as per TTAFP 1.3.5
-subterms :: LambdaTerm -> [LambdaTerm]
-subterms x@(Var _) = [x]
-subterms compoundTerm@(Ap t1 t2) = [compoundTerm] ++ subterms t1 ++ subterms t2
-subterms compoundTerm@(Ab _ t2) = compoundTerm : subterms t2
+subterms :: LambdaTerm -> MS.MultiSet LambdaTerm
+subterms x@(Var _) = MS.singleton x
+subterms compoundTerm@(Ap t1 t2) =
+  MS.insert compoundTerm $ MS.union (subterms t1) (subterms t2)
+subterms compoundTerm@(Ab _ t2) = MS.insert compoundTerm (subterms t2)
 
 -- | Get the proper subterm of a LambaTerm, as per TTAFP 1.3.8
 -- Note that this functions is dependent on the implementation of `subterms`, as
 -- it expects the first element to be the reflexive element.
 properSubterm :: LambdaTerm -> LambdaTerm -> Bool
-properSubterm l m = l `elem` tail (subterms m)
+properSubterm l m = subterms l `MS.isProperSubsetOf` subterms m
 --freeVariables :: LambaTerm -> [Char]
