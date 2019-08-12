@@ -9,100 +9,140 @@ import qualified Data.MultiSet as MS
 import qualified Data.Set as Set
 
 -- subterm test cases
+testBasicSubterm :: Test.Framework.Test
 testBasicSubterm =
-  testCase "subterm - term is subterm of itself" $
-  (MS.singleton $ Var 'x') @=? (subterms varTerm)
+  testCase "term is subterm of itself" $
+  MS.singleton (Var 'x') @=? subterms varTerm
   where
     varTerm = Var 'x'
 
+testApplicationSubterm :: Test.Framework.Test
 testApplicationSubterm =
-  testCase "subterm - test on application" $
-  (MS.fromList [apTerm, Var 'x', Var 'y']) @=? (subterms apTerm)
+  testCase "test on application" $
+  MS.fromList [apTerm, Var 'x', Var 'y'] @=? subterms apTerm
   where
     apTerm = Ap (Var 'x') (Var 'y')
 
+testAbstractionSubterm :: Test.Framework.Test
 testAbstractionSubterm =
-  testCase "subterm - test on abstraction" $
-  (MS.fromList [abTerm, varTerm]) @=? (subterms abTerm)
+  testCase "test on abstraction" $
+  MS.fromList [abTerm, varTerm] @=? subterms abTerm
   where
     varTerm = Var 'x'
     abTerm = Ab 'x' varTerm
 
 -- properSubterm test cases
+testProperSubtermNotReflexive :: Test.Framework.Test
 testProperSubtermNotReflexive =
-  testCase "properSubterm - not a proper subterm of itself" $
-  False @=? (properSubterm simpleTerm simpleTerm)
+  testCase "not a proper subterm of itself" $
+  False @=? properSubterm simpleTerm simpleTerm
   where
     simpleTerm = Var 'x'
 
+testProperSubtermSuccess :: Test.Framework.Test
 testProperSubtermSuccess =
-  testCase "properSubterm - success case" $
-  True @=? (properSubterm termX $ Ap termX termY)
+  testCase "'x' is a subterm in xy" $
+  True @=? properSubterm termX (Ap termX termY)
   where
     termX = Var 'x'
     termY = Var 'y'
 
 -- freeVariables test cases
+testVariableFreeVars :: Test.Framework.Test
 testVariableFreeVars =
-  testCase "Free variables in 'x' is ['x']" $
-  (Set.singleton 'x') @=? (freeVariables $ Var 'x')
+  testCase "'x' is a free variable in the term x" $
+  Set.singleton 'x' @=? freeVariables (Var 'x')
 
+testAbstractionFreeVars :: Test.Framework.Test
 testAbstractionFreeVars =
-  testCase "freeVariables - Given Lx.x return []" $
-  (Set.empty) @=? (freeVariables $ Ab 'x' $ Var 'x')
+  testCase "No free variables i Lx.x" $
+  Set.empty @=? freeVariables (Ab 'x' (Var 'x'))
 
+testAbstractionOverApplicationFreeVars :: Test.Framework.Test
 testAbstractionOverApplicationFreeVars =
-  testCase "freeVariables - Given Lx.xy return ['y']" $
-  (Set.singleton 'y') @=? (freeVariables $ Ab 'x' $ Ap (Var 'x') (Var 'y'))
+  testCase "'y' is a free variable in Lx.xy" $
+  Set.singleton 'y' @=? freeVariables (Ab 'x' (Ap (Var 'x') (Var 'y')))
 
+testAbstractionOverNestedApplicationFreeVars :: Test.Framework.Test
 testAbstractionOverNestedApplicationFreeVars =
-  testCase "freeVariables - Given Lx.xxy return ['y']" $
-  (Set.singleton 'y') @=?
-  (freeVariables $ Ab 'x' $ Ap (Ap (Var 'x') (Var 'x')) (Var 'y'))
+  testCase "'y' is a free variable in Lx.xxy" $
+  Set.singleton 'y' @=?
+  freeVariables (Ab 'x' (Ap (Ap (Var 'x') (Var 'x')) (Var 'y')))
 
+testApplicationOverAbstractionFreeVars :: Test.Framework.Test
 testApplicationOverAbstractionFreeVars =
-  testCase "freeVariables - Given x(Lx.xy) return ['x', 'y']" $
-  (Set.fromList ['y', 'x']) @=?
-  (freeVariables $ Ap (Var 'x') (Ab 'x' (Ap (Var 'x') (Var 'y'))))
+  testCase "'x' and 'y' are free variables in x(Lx.xy)" $
+  Set.fromList ['y', 'x'] @=?
+  freeVariables (Ap (Var 'x') (Ab 'x' (Ap (Var 'x') (Var 'y'))))
 
 -- isClosed test cases
-testCombinatorIsClosed = testCase "isClosed - Given Lx.x, it should return true" $
+testCombinatorIsClosed :: Test.Framework.Test
+testCombinatorIsClosed =
+  testCase "Given Lx.x, it should return true" $
   True @=? isClosed (Ab 'x' (Var 'x'))
 
-testFreeVarIsClosed = testCase "isClosed - Given Lx.y, it should return false" $
+testFreeVarIsClosed :: Test.Framework.Test
+testFreeVarIsClosed =
+  testCase "Given Lx.y, it should return false" $
   False @=? isClosed (Ab 'x' (Var 'y'))
 
 -- isBound test cases
-testCombinatorIsBound = testCase "isBound - Given (Lx.x, x), it should return true" $
-  True @=? isBound (Ab 'x' (Var 'x')) 'x'
+testCombinatorIsBound :: Test.Framework.Test
+testCombinatorIsBound =
+  testCase "'x' is bound in Lx.x" $ True @=? isBound (Ab 'x' (Var 'x')) 'x'
 
-testNonUsedBindingIsBound = testCase "isBound - Given (Lx.y, x), it should return true" $
-  True @=? isBound (Ab 'x' (Var 'y')) 'x'
+testNonUsedBindingIsBound :: Test.Framework.Test
+testNonUsedBindingIsBound =
+  testCase "'x' is bound in Lx.y" $ True @=? isBound (Ab 'x' (Var 'y')) 'x'
 
-testFreeVarIsBound = testCase "isBound - Given (Lx.y, x), it should return true" $
-  False @=? isBound (Ab 'x' (Var 'y')) 'y'
+testFreeVarIsBound :: Test.Framework.Test
+testFreeVarIsBound =
+  testCase "'y' is not bound in Lx.y" $ False @=? isBound (Ab 'x' (Var 'y')) 'y'
 
-testNestedAbstraction = testCase "isBound - Given (x(Lx.Ly.xz), y), it should return true" $
+testNestedAbstractionIsBound :: Test.Framework.Test
+testNestedAbstractionIsBound =
+  testCase "'y' is bound in (x(Lx.Ly.xz)" $
   True @=? isBound (Ap (Var 'x') (Ab 'x' (Ab 'y' (Ap (Var 'x') (Var 'z'))))) 'y'
+
+-- renameVariable test cases
+testRenameFreeVariable :: Test.Framework.Test
+testRenameFreeVariable =
+  testCase "Rename y to z in Lx.xy should result in Lx.xz" $
+  expected @=? renameVariable (Ab 'x' (Ap (Var 'x') (Var 'y'))) 'y' 'z'
+  where
+    expected = Just (Ab 'x' (Ap (Var 'x') (Var 'z')))
+
+testRenameBoundVariable :: Test.Framework.Test
+testRenameBoundVariable =
+  testCase "Rename x to y in Lx.x should result in Nothing" $
+  Nothing @=? renameVariable (Ab 'x' (Var 'x')) 'x' 'y'
 
 main :: IO ()
 main =
-  defaultMainWithOpts
-    [ testBasicSubterm
-    , testApplicationSubterm
-    , testAbstractionSubterm
-    , testProperSubtermNotReflexive
-    , testProperSubtermSuccess
-    , testVariableFreeVars
-    , testAbstractionFreeVars
-    , testAbstractionOverApplicationFreeVars
-    , testAbstractionOverNestedApplicationFreeVars
-    , testApplicationOverAbstractionFreeVars
-    , testCombinatorIsClosed
-    , testFreeVarIsClosed
-    , testCombinatorIsBound
-    , testNonUsedBindingIsBound
-    , testFreeVarIsBound
-    , testNestedAbstraction
+  defaultMain
+    [ testGroup
+        "subterm"
+        [testBasicSubterm, testApplicationSubterm, testAbstractionSubterm]
+    , testGroup
+        "properSubterm"
+        [testProperSubtermNotReflexive, testProperSubtermSuccess]
+    , testGroup
+        "freeVariables"
+        [ testVariableFreeVars
+        , testAbstractionFreeVars
+        , testAbstractionOverApplicationFreeVars
+        , testAbstractionOverNestedApplicationFreeVars
+        , testApplicationOverAbstractionFreeVars
+        ]
+    , testGroup "isClosed" [testCombinatorIsClosed, testFreeVarIsClosed]
+    , testGroup
+        "isBound"
+        [ testCombinatorIsBound
+        , testNonUsedBindingIsBound
+        , testFreeVarIsBound
+        , testNestedAbstractionIsBound
+        ]
+    , testGroup
+        "renameVariable"
+        [testRenameFreeVariable, testRenameBoundVariable]
     ]
-    mempty

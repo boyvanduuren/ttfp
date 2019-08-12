@@ -5,6 +5,7 @@ module Lib
   , freeVariables
   , isClosed
   , isBound
+  , renameVariable
   ) where
 
 import qualified Data.MultiSet as MS
@@ -54,3 +55,20 @@ isBound :: LambdaTerm -> Char -> Bool
 isBound (Var _) _ = False
 isBound (Ap t1 t2) name = isBound t1 name || isBound t2 name
 isBound (Ab x t) name = (x == name) || isBound t name
+
+-- | Renames a free variable in a LambdaTerm.
+renameVariable :: LambdaTerm -> Char -> Char -> Maybe LambdaTerm
+renameVariable t x y =
+  if isBound t x
+    then Nothing
+    else Just (constructReplacedTerm t x y)
+  where
+    constructReplacedTerm :: LambdaTerm -> Char -> Char -> LambdaTerm
+    constructReplacedTerm (Var z) x' y' =
+      if z == x'
+        then Var y'
+        else Var z
+    constructReplacedTerm (Ap t1 t2) x' y' =
+      Ap (constructReplacedTerm t1 x' y') (constructReplacedTerm t2 x' y')
+    constructReplacedTerm (Ab z t1) x' y' =
+      Ab z (constructReplacedTerm t1 x' y')
