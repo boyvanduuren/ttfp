@@ -55,66 +55,66 @@ testVariableFreeVars =
 
 testAbstractionFreeVars :: Test.Framework.Test
 testAbstractionFreeVars =
-  testCase "No free variables i Lx.x" $
+  testCase "No free variables in λx.x" $
   Set.empty @=? freeVariables (Ab 'x' (Var 'x'))
 
 testAbstractionOverApplicationFreeVars :: Test.Framework.Test
 testAbstractionOverApplicationFreeVars =
-  testCase "'y' is a free variable in Lx.xy" $
+  testCase "'y' is a free variable in λx.xy" $
   Set.singleton 'y' @=? freeVariables (Ab 'x' (Ap (Var 'x') (Var 'y')))
 
 testAbstractionOverNestedApplicationFreeVars :: Test.Framework.Test
 testAbstractionOverNestedApplicationFreeVars =
-  testCase "'y' is a free variable in Lx.xxy" $
+  testCase "'y' is a free variable in λx.xxy" $
   Set.singleton 'y' @=?
   freeVariables (Ab 'x' (Ap (Ap (Var 'x') (Var 'x')) (Var 'y')))
 
 testApplicationOverAbstractionFreeVars :: Test.Framework.Test
 testApplicationOverAbstractionFreeVars =
-  testCase "'x' and 'y' are free variables in x(Lx.xy)" $
+  testCase "'x' and 'y' are free variables in x(λx.xy)" $
   Set.fromList ['y', 'x'] @=?
   freeVariables (Ap (Var 'x') (Ab 'x' (Ap (Var 'x') (Var 'y'))))
 
 -- isClosed test cases
 testCombinatorIsClosed :: Test.Framework.Test
 testCombinatorIsClosed =
-  testCase "Given Lx.x, it should return true" $
+  testCase "Given λx.x, it should return true" $
   True @=? isClosed (Ab 'x' (Var 'x'))
 
 testFreeVarIsClosed :: Test.Framework.Test
 testFreeVarIsClosed =
-  testCase "Given Lx.y, it should return false" $
+  testCase "Given λx.y, it should return false" $
   False @=? isClosed (Ab 'x' (Var 'y'))
 
 -- isBound test cases
 testCombinatorIsBound :: Test.Framework.Test
 testCombinatorIsBound =
-  testCase "'x' is bound in Lx.x" $ True @=? isBound (Ab 'x' (Var 'x')) 'x'
+  testCase "'x' is bound in λx.x" $ True @=? isBound (Ab 'x' (Var 'x')) 'x'
 
 testNonUsedBindingIsBound :: Test.Framework.Test
 testNonUsedBindingIsBound =
-  testCase "'x' is bound in Lx.y" $ True @=? isBound (Ab 'x' (Var 'y')) 'x'
+  testCase "'x' is bound in λx.y" $ True @=? isBound (Ab 'x' (Var 'y')) 'x'
 
 testFreeVarIsBound :: Test.Framework.Test
 testFreeVarIsBound =
-  testCase "'y' is not bound in Lx.y" $ False @=? isBound (Ab 'x' (Var 'y')) 'y'
+  testCase "'y' is not bound in λx.y" $ False @=? isBound (Ab 'x' (Var 'y')) 'y'
 
 testNestedAbstractionIsBound :: Test.Framework.Test
 testNestedAbstractionIsBound =
-  testCase "'y' is bound in (x(Lx.Ly.xz)" $
+  testCase "'y' is bound in (x(λx.λy.xz)" $
   True @=? isBound (Ap (Var 'x') (Ab 'x' (Ab 'y' (Ap (Var 'x') (Var 'z'))))) 'y'
 
 -- renameVariable test cases
 testRenameFreeVariable :: Test.Framework.Test
 testRenameFreeVariable =
-  testCase "Rename y to z in Lx.xy should result in Lx.xz" $
+  testCase "Rename y to z in λx.xy should result in λx.xz" $
   expected @=? renameVariable (Ab 'x' (Ap (Var 'x') (Var 'y'))) 'y' 'z'
   where
     expected = Just (Ab 'x' (Ap (Var 'x') (Var 'z')))
 
 testRenameBoundVariable :: Test.Framework.Test
 testRenameBoundVariable =
-  testCase "Rename x to y in Lx.x should result in Nothing" $
+  testCase "Rename x to y in λx.x should result in Nothing" $
   Nothing @=? renameVariable (Ab 'x' (Var 'x')) 'x' 'y'
 
 main :: IO ()
