@@ -3,6 +3,8 @@ module Lib
   , subterms
   , properSubterm
   , freeVariables
+  , isClosed
+  , isBound
   ) where
 
 import qualified Data.MultiSet as MS
@@ -41,3 +43,14 @@ freeVariables :: LambdaTerm -> Set.Set Char
 freeVariables (Var x) = Set.singleton x
 freeVariables (Ap t1 t2) = Set.union (freeVariables t1) (freeVariables t2)
 freeVariables (Ab x t) = Set.delete x $ freeVariables t
+
+-- | Returns whether a given LambdaTerm is closed or not.
+-- Closed being defined as a LambdaTerm that has no free variables.
+isClosed :: LambdaTerm -> Bool
+isClosed = Set.null . freeVariables
+
+-- | Returns whether a given name is used as a binding in an abstraction.
+isBound :: LambdaTerm -> Char -> Bool
+isBound (Var _) _ = False
+isBound (Ap t1 t2) name = isBound t1 name || isBound t2 name
+isBound (Ab x t) name = (x == name) || isBound t name

@@ -65,6 +65,26 @@ testApplicationOverAbstractionFreeVars =
   (Set.fromList ['y', 'x']) @=?
   (freeVariables $ Ap (Var 'x') (Ab 'x' (Ap (Var 'x') (Var 'y'))))
 
+-- isClosed test cases
+testCombinatorIsClosed = testCase "isClosed - Given Lx.x, it should return true" $
+  True @=? isClosed (Ab 'x' (Var 'x'))
+
+testFreeVarIsClosed = testCase "isClosed - Given Lx.y, it should return false" $
+  False @=? isClosed (Ab 'x' (Var 'y'))
+
+-- isBound test cases
+testCombinatorIsBound = testCase "isBound - Given (Lx.x, x), it should return true" $
+  True @=? isBound (Ab 'x' (Var 'x')) 'x'
+
+testNonUsedBindingIsBound = testCase "isBound - Given (Lx.y, x), it should return true" $
+  True @=? isBound (Ab 'x' (Var 'y')) 'x'
+
+testFreeVarIsBound = testCase "isBound - Given (Lx.y, x), it should return true" $
+  False @=? isBound (Ab 'x' (Var 'y')) 'y'
+
+testNestedAbstraction = testCase "isBound - Given (x(Lx.Ly.xz), y), it should return true" $
+  True @=? isBound (Ap (Var 'x') (Ab 'x' (Ab 'y' (Ap (Var 'x') (Var 'z'))))) 'y'
+
 main :: IO ()
 main =
   defaultMainWithOpts
@@ -78,5 +98,11 @@ main =
     , testAbstractionOverApplicationFreeVars
     , testAbstractionOverNestedApplicationFreeVars
     , testApplicationOverAbstractionFreeVars
+    , testCombinatorIsClosed
+    , testFreeVarIsClosed
+    , testCombinatorIsBound
+    , testNonUsedBindingIsBound
+    , testFreeVarIsBound
+    , testNestedAbstraction
     ]
     mempty
