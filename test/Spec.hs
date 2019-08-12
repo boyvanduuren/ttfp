@@ -6,6 +6,7 @@ import Test.Framework.Providers.HUnit
 import Test.HUnit
 
 import qualified Data.MultiSet as MS
+import qualified Data.Set as Set
 
 -- subterm test cases
 testBasicSubterm =
@@ -52,35 +53,49 @@ testProperSubtermSuccess =
 testVariableFreeVars =
   assertEqual
     "A 'Var' lambda term always returns its constructor argument"
-    (MS.singleton 'x')
+    (Set.singleton 'x')
     (freeVariables $ Var 'x')
 
 testAbstractionFreeVars =
   assertEqual
     "A bound variable can never be free"
-    (MS.empty)
+    (Set.empty)
     (freeVariables $ Ab 'x' $ Var 'x')
 
 testAbstractionOverApplicationFreeVars =
   assertEqual
     "Given Lx.xy return ['y']"
-    (MS.singleton 'y')
+    (Set.singleton 'y')
     (freeVariables $ Ab 'x' $ Ap (Var 'x') (Var 'y'))
+
+testAbstractionOverNestedApplicationFreeVars =
+  assertEqual
+    "Given Lx.xxy return ['y']"
+    (Set.singleton 'y')
+    (freeVariables $ Ab 'x' $ Ap (Ap (Var 'x') (Var 'x')) (Var 'y'))
+
+testApplicationOverAbstractionFreeVars =
+  assertEqual
+    "Given x(Lx.xy) return ['x', 'y']"
+    (Set.fromList ['y', 'x'])
+    (freeVariables $ Ap (Var 'x') (Ab 'x' (Ap (Var 'x') (Var 'y'))))
 
 main :: IO ()
 main =
   defaultMainWithOpts
-    [ testCase "subterm - basic" testBasicSubterm
-    , testCase "subterm - application" testApplicationSubterm
-    , testCase "subterm - abstraction" testAbstractionSubterm
+    [ testCase "subterm - term is subterm of itself" testBasicSubterm
+    , testCase "subterm - test on application" testApplicationSubterm
+    , testCase "subterm - test on abstraction" testAbstractionSubterm
     , testCase
         "properSubterm - not a proper subterm of itself"
         testProperSubtermNotReflexive
     , testCase "properSubterm - success case" testProperSubtermSuccess
     , testCase "Free variables in 'x' is ['x']" testVariableFreeVars
     , testCase
-        "A variable bound in an abstraction should not be returned as free"
+        "freeVariables - A variable bound in an abstraction should not be returned as free"
         testAbstractionFreeVars
-    , testCase "Given Lx.xy return ['y']" testAbstractionOverApplicationFreeVars
+    , testCase "freeVariables - Given Lx.xy return ['y']" testAbstractionOverApplicationFreeVars
+    , testCase "freeVariables - Given Lx.xxy return ['y']" testAbstractionOverNestedApplicationFreeVars
+    , testCase "freeVariables - Given x(Lx.xy) return ['x', 'y']" testApplicationOverAbstractionFreeVars
     ]
     mempty

@@ -6,6 +6,7 @@ module Lib
   ) where
 
 import qualified Data.MultiSet as MS
+import qualified Data.Set as Set
 
 -- | Constructions for Lambda terms, as per TTFP 1.3.2
 data LambdaTerm
@@ -36,7 +37,7 @@ properSubterm :: LambdaTerm -> LambdaTerm -> Bool
 properSubterm l m = subterms l `MS.isProperSubsetOf` subterms m
 
 -- | Get the free variables from a lambda term as defined in TTFP 1.4.1
-freeVariables :: LambdaTerm -> MS.MultiSet Char
-freeVariables (Var x) = MS.singleton x
-freeVariables (Ap t1 t2) = MS.union (freeVariables t1) (freeVariables t2)
-freeVariables (Ab x t) = MS.delete x $ freeVariables t
+freeVariables :: LambdaTerm -> Set.Set Char
+freeVariables (Var x) = Set.singleton x
+freeVariables (Ap t1 t2) = Set.union (freeVariables t1) (freeVariables t2)
+freeVariables (Ab x t) = Set.delete x $ freeVariables t
