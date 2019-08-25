@@ -119,11 +119,11 @@ testRenameBoundVariable =
 
 testAlphaConversion :: Test.Framework.Test
 testAlphaConversion =
-    testCase "Rename (λx.x(λz.xy))z to (λu.u(λz.uy))z" $
+    testCase "Rename λx.x(λz.xy) to λu.u(λz.uy)" $
     Just expected @=? actual
     where
-      expected = Ap (Ab 'u' (Ap (Var 'u') (Ab 'z' (Ap (Var 'u') (Var 'y'))))) (Var 'z')
-      actual = alphaConvert (Ap (Ab 'x' (Ap (Var 'x') (Ab 'z' (Ap (Var 'x') (Var 'y'))))) (Var 'z')) 'x' 'u'
+      expected = Ab 'u' (Ap (Var 'u') (Ab 'z' (Ap (Var 'u') (Var 'y'))))
+      actual = alphaConvert (Ab 'x' (Ap (Var 'x') (Ab 'z' (Ap (Var 'x') (Var 'y'))))) 'x' 'u'
 
 main :: IO ()
 main =

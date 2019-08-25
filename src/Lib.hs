@@ -75,13 +75,14 @@ renameVariable t x y =
       Ab z (constructReplacedTerm t1 x' y')
 
 alphaConvert :: LambdaTerm -> Char -> Char -> Maybe LambdaTerm
-alphaConvert t x y =
-  if isBound t x || (not . Set.member x) (freeVariables t)
+alphaConvert t@(Ab _ s) x y =
+  if isBound s x || (not . Set.member x) (freeVariables s)
     then Nothing
     else doAlphaConversion t x y
   where
     doAlphaConversion :: LambdaTerm -> Char -> Char -> Maybe LambdaTerm
     doAlphaConversion (Ab z subterm) x' y' = do
       renamedTerm <- renameVariable subterm x' y'
-      return (Ab (if x' == z then y' else z) $ renamedTerm)
+      return (Ab (if x' == z then y' else z) renamedTerm)
     doAlphaConversion _ _ _ = Nothing
+alphaConvert _ _ _ = Nothing -- TODO
