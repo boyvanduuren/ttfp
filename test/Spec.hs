@@ -117,6 +117,14 @@ testRenameBoundVariable =
   testCase "Rename x to y in λx.x should result in Nothing" $
   Nothing @=? renameVariable (Ab 'x' (Var 'x')) 'x' 'y'
 
+testAlphaConversion :: Test.Framework.Test
+testAlphaConversion =
+    testCase "Rename (λx.x(λz.xy))z to (λu.u(λz.uy))z" $
+    Just expected @=? actual
+    where
+      expected = Ap (Ab 'u' (Ap (Var 'u') (Ab 'z' (Ap (Var 'u') (Var 'y'))))) (Var 'z')
+      actual = alphaConvert (Ap (Ab 'x' (Ap (Var 'x') (Ab 'z' (Ap (Var 'x') (Var 'y'))))) (Var 'z')) 'x' 'u'
+
 main :: IO ()
 main =
   defaultMain
@@ -145,4 +153,5 @@ main =
     , testGroup
         "renameVariable"
         [testRenameFreeVariable, testRenameBoundVariable]
+    , testGroup "alphaConvert" [testAlphaConversion]
     ]

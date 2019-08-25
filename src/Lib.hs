@@ -6,6 +6,7 @@ module Lib
   , isClosed
   , isBound
   , renameVariable
+  , alphaConvert
   ) where
 
 import qualified Data.MultiSet as MS
@@ -72,3 +73,15 @@ renameVariable t x y =
       Ap (constructReplacedTerm t1 x' y') (constructReplacedTerm t2 x' y')
     constructReplacedTerm (Ab z t1) x' y' =
       Ab z (constructReplacedTerm t1 x' y')
+
+alphaConvert :: LambdaTerm -> Char -> Char -> Maybe LambdaTerm
+alphaConvert t x y =
+  if isBound t x || (not . Set.member x) (freeVariables t)
+    then Nothing
+    else doAlphaConversion t x y
+  where
+    doAlphaConversion :: LambdaTerm -> Char -> Char -> Maybe LambdaTerm
+    doAlphaConversion (Ab z subterm) x' y' = do
+      renamedTerm <- renameVariable subterm x' y'
+      return (Ab (if x' == z then y' else z) $ renamedTerm)
+    doAlphaConversion _ _ _ = Nothing
