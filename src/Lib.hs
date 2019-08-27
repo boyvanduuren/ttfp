@@ -74,6 +74,8 @@ renameVariable t x y =
     constructReplacedTerm (Ab z t1) x' y' =
       Ab z (constructReplacedTerm t1 x' y')
 
+-- | Alpha conversion for lambda terms. Note that this is only defined
+-- for abstractions and will return Nothing for variable and application terms.
 alphaConvert :: LambdaTerm -> Char -> Char -> Maybe LambdaTerm
 alphaConvert t@(Ab _ s) x y =
   if isBound s x || (not . Set.member x) (freeVariables s)
@@ -85,4 +87,4 @@ alphaConvert t@(Ab _ s) x y =
       renamedTerm <- renameVariable subterm x' y'
       return (Ab (if x' == z then y' else z) renamedTerm)
     doAlphaConversion _ _ _ = Nothing
-alphaConvert _ _ _ = Nothing -- TODO
+alphaConvert _ _ _ = Nothing
