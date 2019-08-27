@@ -27,7 +27,7 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Untyped
   other-modules:
       Paths_ttfp
   hs-source-dirs:

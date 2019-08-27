@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Untyped
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit
