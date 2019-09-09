@@ -1,6 +1,7 @@
 module Main where
 
 import Untyped
+import SimplyTyped
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit
@@ -125,6 +126,19 @@ testAlphaConversion =
       expected = Ab 'u' (Ap (Var 'u') (Ab 'z' (Ap (Var 'u') (Var 'y'))))
       actual = alphaConvert (Ab 'x' (Ap (Var 'x') (Ab 'z' (Ap (Var 'x') (Var 'y'))))) 'x' 'u'
 
+{-- SimplyTyped tests, TODO: split it out in modules --}
+testVarTerm :: Test.Framework.Test
+testVarTerm =
+  testCase "Create a typed variable term" $
+  True @=? actual
+  where
+    typedVar = (TypeVariable 'α', 'x')
+    context = Set.singleton typedVar
+    term = SimplyTyped.varTerm context typedVar
+    actual = case term of
+      Just _ -> True
+      Nothing -> False
+
 main :: IO ()
 main =
   defaultMain
@@ -154,4 +168,5 @@ main =
         "renameVariable"
         [testRenameFreeVariable, testRenameBoundVariable]
     , testGroup "alphaConvert" [testAlphaConversion]
+    , testGroup "typed variable term" [testVarTerm]
     ]

@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Untyped
+      SimplyTyped
   other-modules:
       Paths_ttfp
   hs-source-dirs:
